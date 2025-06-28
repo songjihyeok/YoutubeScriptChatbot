@@ -190,6 +190,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get transcript summary
+  app.get("/api/transcripts/:id/summary", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const transcript = await storage.getTranscript(id);
+      
+      if (!transcript) {
+        return res.status(404).json({ message: "Transcript not found" });
+      }
+
+      // Check if summary already exists in storage
+      const existingSummary = await storage.getTranscriptSummary(id);
+      if (existingSummary) {
+        return res.json({ summary: existingSummary });
+      }
+
+      // Prepare transcript text for AI
+      const transcriptText = transcript.segments
+        .map(segment => `[${segment.start}] ${segment.text}`)
+        .join('\n');
+
+      // Generate summary using OpenAI
+      const summary = await openaiService.summarizeTranscript(
+        transcriptText,
+        transcript.title
+      );
+
+      // Save summary to storage
+      await storage.saveTranscriptSummary(id, summary);
+
+      res.json({ summary });
+
+    } catch (error: any) {
+      console.error("Summary generation error:", error);
+      res.status(500).json({ 
+        message: error.message || "Failed to generate summary" 
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

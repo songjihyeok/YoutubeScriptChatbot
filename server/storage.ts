@@ -6,6 +6,10 @@ export interface IStorage {
   getTranscriptByVideoId(videoId: string): Promise<Transcript | undefined>;
   getTranscript(id: number): Promise<Transcript | undefined>;
   
+  // Summary methods
+  getTranscriptSummary(transcriptId: number): Promise<string | undefined>;
+  saveTranscriptSummary(transcriptId: number, summary: string): Promise<void>;
+  
   // Chat methods
   createChatMessage(chatMessage: InsertChatMessage): Promise<ChatMessage>;
   getChatMessagesByTranscriptId(transcriptId: number): Promise<ChatMessage[]>;
@@ -20,6 +24,7 @@ export class MemStorage implements IStorage {
   private transcripts: Map<number, Transcript>;
   private chatMessages: Map<number, ChatMessage>;
   private users: Map<number, User>;
+  private summaries: Map<number, string>;
   private currentTranscriptId: number;
   private currentChatMessageId: number;
   private currentUserId: number;
@@ -28,6 +33,7 @@ export class MemStorage implements IStorage {
     this.transcripts = new Map();
     this.chatMessages = new Map();
     this.users = new Map();
+    this.summaries = new Map();
     this.currentTranscriptId = 1;
     this.currentChatMessageId = 1;
     this.currentUserId = 1;
@@ -75,6 +81,14 @@ export class MemStorage implements IStorage {
     return Array.from(this.chatMessages.values()).filter(
       (message) => message.transcriptId === transcriptId
     );
+  }
+
+  async getTranscriptSummary(transcriptId: number): Promise<string | undefined> {
+    return this.summaries.get(transcriptId);
+  }
+
+  async saveTranscriptSummary(transcriptId: number, summary: string): Promise<void> {
+    this.summaries.set(transcriptId, summary);
   }
 
   async getUser(id: number): Promise<User | undefined> {

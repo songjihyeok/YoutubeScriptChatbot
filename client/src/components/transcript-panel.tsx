@@ -2,6 +2,7 @@ import { FileText, Copy, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Transcript } from "@shared/schema";
+import TranscriptSummary from "@/components/transcript-summary";
 
 interface TranscriptPanelProps {
   transcript: Transcript | null;
@@ -106,8 +107,12 @@ export default function TranscriptPanel({ transcript }: TranscriptPanelProps) {
             </div>
           </div>
 
+          {/* Summary Section */}
+          <TranscriptSummary transcript={transcript} />
+
           {/* Transcript Text */}
-          <div className="max-h-96 overflow-y-auto">
+          <div className="max-h-96 overflow-y-auto mt-6">
+            <h4 className="font-medium text-slate-900 mb-4">Full Transcript</h4>
             <div className="space-y-4">
               {transcript.segments.map((segment, index) => (
                 <div key={index} className="flex space-x-3">
