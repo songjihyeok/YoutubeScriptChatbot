@@ -17,7 +17,6 @@ dotenv.config({ path: join(__dirname, '../.env') });
 console.log("Environment Variables Loaded:", {
   NODE_ENV: process.env.NODE_ENV,
   PORT: process.env.PORT,
-  YOUTUBE_API_KEY: process.env.YOUTUBE_API_KEY ?? "✗ Missing",
 });
 
 
@@ -32,37 +31,74 @@ const chatMessageRequestSchema = z.object({
 
 export async function registerRoutes(app: Express): Promise<Server> {
 
-  // Extract YouTube transcript
+  // Extract YouTube transcript using SearchAPI
   app.post("/api/extract-transcript", async (req, res) => {
     try {
       const { youtubeUrl } = extractTranscriptSchema.parse(req.body);
       
-      // Check if transcript already exists
-      const videoId = youtubeService.extractVideoId(youtubeUrl);
-      if (videoId) {
-        const existingTranscript = await storage.getTranscriptByVideoId(videoId);
-        if (existingTranscript) {
-          return res.json(existingTranscript);
-        }
+      // Extract video ID from URL
+      const videoIdMatch = youtubeUrl.match(
+        /(?:v=|\/embed\/|\/v\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+      );
+      const videoId = videoIdMatch ? videoIdMatch[1] : "";
+
+      if (!videoId) {
+        throw new Error("Invalid YouTube URL");
       }
 
-      // Extract new transcript using YouTube service
-      const { segments } = await youtubeService.extractTranscript(youtubeUrl);
+      // Check if transcript already exists
+      const existingTranscript = await storage.getTranscriptByVideoId(videoId);
+      if (existingTranscript) {
+        return res.json(existingTranscript);
+      }
 
-      // Save to storage
+      // Get transcript from SearchAPI
+      const apiKey = process.env.SEARCH_API_KEY;
+      if (!apiKey) {
+        throw new Error("SEARCH_API_KEY not configured");
+      }
+
+      const searchApiRes = await fetch(
+        `https://www.searchapi.io/api/v1/search?api_key=${apiKey}&engine=youtube_transcripts&video_id=${videoId}`,
+        {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+
+      if (!searchApiRes.ok) {
+        throw new Error(`SearchAPI error: ${searchApiRes.statusText}`);
+      }
+
+      const searchApiData = await searchApiRes.json();
+      console.log("SearchAPI response:", searchApiData);
+
+      // Check if transcripts are available
+      if (!searchApiData.transcripts || searchApiData.transcripts.length === 0) {
+        throw new Error("No transcripts available for this video");
+      }
+
+      // Transform SearchAPI response to match our format
       const transcriptData = {
         youtubeUrl,
-        videoId: videoId,
-        title: "title",
-        channelName: "channelName",
-        duration: "duration",
+        videoId,
+        title:
+          searchApiData.filename?.replace(/_[a-zA-Z0-9]{8}\.[^.]+$/, "") ||
+          "Unknown Title",
+        channelName: "YouTube Channel",
+        duration: "N/A",
         thumbnailUrl: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
-        segments: segments
+        segments: searchApiData.transcripts.map((transcript: any) => ({
+          text: transcript.text.trim(),
+          start: transcript.start,
+          duration: transcript.duration,
+        })),
       };
-      console.log("segments", segments)
 
-
-      res.json(transcriptData);
+      // Save to storage
+      const savedTranscript = await storage.createTranscript(transcriptData);
+      
+      res.json(savedTranscript);
 
     } catch (error: any) {
       console.error("Transcript extraction error:", error);

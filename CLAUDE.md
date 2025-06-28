@@ -1,6 +1,8 @@
 # CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+항상 코드 변경 후 git commit을 수행하세요.
+commit message는 변경 내용을 간결하게 설명해야 합니다.
 
 ## Project Overview
 
@@ -24,12 +26,14 @@ npm run db:push     # Push database schema changes
 ## Architecture
 
 ### Stack
+
 - **Frontend**: React 18 + TypeScript + Vite + Tailwind CSS + shadcn/ui components
 - **Backend**: Express.js + TypeScript + yt-dlp-exec
 - **AI**: OpenAI GPT-4o for chat functionality
 - **Storage**: In-memory storage (MemStorage class)
 
 ### Project Structure
+
 ```
 /client              # React frontend
   /src/components    # UI components (shadcn/ui based)
@@ -43,14 +47,15 @@ npm run db:push     # Push database schema changes
 ```
 
 ### Path Aliases
+
 - `@/*` → `./client/src/*`
 - `@shared/*` → `./shared/*`
 
 ## Required Environment Variables
 
 Create a `.env` file with:
+
 ```
-YOUTUBE_API_KEY=your_youtube_api_key
 OPENAI_API_KEY=your_openai_api_key
 PORT=5001
 NODE_ENV=development
@@ -76,6 +81,7 @@ NODE_ENV=development
 ## Common Development Tasks
 
 When implementing new features:
+
 1. Define types in `/shared/schema.ts` using Zod for validation
 2. Create API endpoints in `/server/routes.ts`
 3. Implement service logic in `/server/services/`

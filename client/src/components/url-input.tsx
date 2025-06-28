@@ -19,51 +19,16 @@ export default function UrlInput({
   setUrl,
 }: UrlInputProps) {
   const { toast } = useToast();
-
+  // https://asia-northeast3-youtubecrawling-463910.cloudfunctions.net/youtubecrawling
   const extractMutation = useMutation({
     mutationFn: async (youtubeUrl: string) => {
       try {
-        // First, get transcript from Python server
-        const pythonRes = await fetch("http://localhost:8000/transcribe", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url: youtubeUrl }),
+        // Extract transcript using our server endpoint
+        const res = await apiRequest("POST", "/api/extract-transcript", {
+          youtubeUrl,
         });
 
-        if (!pythonRes.ok) {
-          throw new Error(`Python server error: ${pythonRes.statusText}`);
-        }
-
-        const pythonData = await pythonRes.json();
-        console.log("Python response:", pythonData);
-
-        // Extract video ID from URL
-        const videoIdMatch = youtubeUrl.match(/(?:v=|\/embed\/|\/v\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-        const videoId = videoIdMatch ? videoIdMatch[1] : "";
-
-        // Transform Python response to match Express server format
-        const transcriptData = {
-          youtubeUrl,
-          videoId,
-          title: pythonData.filename?.replace(/_[a-zA-Z0-9]{8}\.[^.]+$/, '') || "Unknown Title",
-          channelName: "YouTube Channel",
-          duration: "N/A",
-          thumbnailUrl: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
-          segments: pythonData.segments.map((seg: any) => ({
-            text: seg.text.trim(),
-            start: seg.start,
-            duration: seg.end - seg.start,
-          })),
-        };
-
-        // Save to Express server for chat functionality
-        const res = await apiRequest(
-          "POST",
-          "/api/transcripts",
-          transcriptData
-        );
-
-        return res.json();
+        return await res.json();
       } catch (error) {
         console.error("Error extracting transcript:", error);
         throw error;
