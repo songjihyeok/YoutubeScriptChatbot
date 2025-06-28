@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { youtubeService } from "./services/youtube";
 import { openaiService } from "./services/openai";
-import { insertTranscriptSchema, insertChatMessageSchema } from "@shared/schema";
+import { insertTranscriptSchema } from "@shared/schema";
 import { z } from "zod";
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
@@ -22,11 +22,6 @@ console.log("Environment Variables Loaded:", {
 
 const extractTranscriptSchema = z.object({
   youtubeUrl: z.string().url("Please enter a valid YouTube URL")
-});
-
-const chatMessageRequestSchema = z.object({
-  transcriptId: z.number(),
-  message: z.string().min(1, "Message cannot be empty")
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -139,56 +134,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Send chat message
-  app.post("/api/chat", async (req, res) => {
-    try {
-      const { transcriptId, message } = chatMessageRequestSchema.parse(req.body);
-      
-      // Get transcript
-      const transcript = await storage.getTranscript(transcriptId);
-      if (!transcript) {
-        return res.status(404).json({ message: "Transcript not found" });
-      }
-
-      // Prepare transcript text for AI
-      const transcriptText = transcript.segments
-        .map(segment => `[${segment.start}] ${segment.text}`)
-        .join('\n');
-
-      // Get AI response
-      const aiResponse = await openaiService.chatWithTranscript(
-        message, 
-        transcriptText, 
-        transcript.title
-      );
-
-      // Save chat message
-      const chatMessage = await storage.createChatMessage({
-        transcriptId,
-        message,
-        response: aiResponse
-      });
-
-      res.json(chatMessage);
-
-    } catch (error: any) {
-      console.error("Chat error:", error);
-      res.status(400).json({ 
-        message: error.message || "Failed to process chat message" 
-      });
-    }
-  });
-
-  // Get chat history for transcript
-  app.get("/api/transcripts/:id/chat", async (req, res) => {
-    try {
-      const transcriptId = parseInt(req.params.id);
-      const chatMessages = await storage.getChatMessagesByTranscriptId(transcriptId);
-      res.json(chatMessages);
-    } catch (error: any) {
-      res.status(500).json({ message: "Failed to fetch chat history" });
-    }
-  });
 
   // Get transcript summary
   app.get("/api/transcripts/:id/summary", async (req, res) => {

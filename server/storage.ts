@@ -1,4 +1,4 @@
-import { transcripts, chatMessages, users, type Transcript, type ChatMessage, type InsertTranscript, type InsertChatMessage, type User, type InsertUser, type TranscriptSegment } from "@shared/schema";
+import { transcripts, users, type Transcript, type InsertTranscript, type User, type InsertUser, type TranscriptSegment } from "@shared/schema";
 
 export interface IStorage {
   // Transcript methods
@@ -10,10 +10,6 @@ export interface IStorage {
   getTranscriptSummary(transcriptId: number): Promise<string | undefined>;
   saveTranscriptSummary(transcriptId: number, summary: string): Promise<void>;
   
-  // Chat methods
-  createChatMessage(chatMessage: InsertChatMessage): Promise<ChatMessage>;
-  getChatMessagesByTranscriptId(transcriptId: number): Promise<ChatMessage[]>;
-  
   // User methods (existing)
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
@@ -22,20 +18,16 @@ export interface IStorage {
 
 export class MemStorage implements IStorage {
   private transcripts: Map<number, Transcript>;
-  private chatMessages: Map<number, ChatMessage>;
   private users: Map<number, User>;
   private summaries: Map<number, string>;
   private currentTranscriptId: number;
-  private currentChatMessageId: number;
   private currentUserId: number;
 
   constructor() {
     this.transcripts = new Map();
-    this.chatMessages = new Map();
     this.users = new Map();
     this.summaries = new Map();
     this.currentTranscriptId = 1;
-    this.currentChatMessageId = 1;
     this.currentUserId = 1;
   }
 
@@ -66,22 +58,6 @@ export class MemStorage implements IStorage {
     return this.transcripts.get(id);
   }
 
-  async createChatMessage(insertChatMessage: InsertChatMessage): Promise<ChatMessage> {
-    const id = this.currentChatMessageId++;
-    const chatMessage: ChatMessage = {
-      ...insertChatMessage,
-      id,
-      createdAt: new Date()
-    };
-    this.chatMessages.set(id, chatMessage);
-    return chatMessage;
-  }
-
-  async getChatMessagesByTranscriptId(transcriptId: number): Promise<ChatMessage[]> {
-    return Array.from(this.chatMessages.values()).filter(
-      (message) => message.transcriptId === transcriptId
-    );
-  }
 
   async getTranscriptSummary(transcriptId: number): Promise<string | undefined> {
     return this.summaries.get(transcriptId);

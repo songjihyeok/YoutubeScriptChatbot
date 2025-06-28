@@ -2,7 +2,6 @@ import { useState } from "react";
 import Header from "@/components/header";
 import UrlInput from "@/components/url-input";
 import TranscriptPanel from "@/components/transcript-panel";
-import ChatPanel from "@/components/chat-panel";
 import Features from "@/components/features";
 import Footer from "@/components/footer";
 import { Transcript } from "@shared/schema";
@@ -24,9 +23,8 @@ export default function Home() {
           setUrl={setUrl}
         />
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="max-w-4xl mx-auto">
           <TranscriptPanel transcript={currentTranscript} />
-          <ChatPanel transcript={currentTranscript} />
         </div>
 
         <Features />
