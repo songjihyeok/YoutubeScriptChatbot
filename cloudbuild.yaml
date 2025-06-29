@@ -4,12 +4,14 @@ steps:
     args:
       - "build"
       - "-t"
+      - "gcr.io/$PROJECT_ID/youtube-script-chatbot:$COMMIT_SHA"
+      - "-t"
       - "gcr.io/$PROJECT_ID/youtube-script-chatbot:latest"
       - "."
 
   # Push the container image to Container Registry
   - name: "gcr.io/cloud-builders/docker"
-    args: ["push", "gcr.io/$PROJECT_ID/youtube-script-chatbot:latest"]
+    args: ["push", "--all-tags", "gcr.io/$PROJECT_ID/youtube-script-chatbot"]
 
   # Deploy container image to Cloud Run
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
@@ -19,7 +21,7 @@ steps:
       - "deploy"
       - "youtube-script-chatbot"
       - "--image"
-      - "gcr.io/$PROJECT_ID/youtube-script-chatbot:latest"
+      - "gcr.io/$PROJECT_ID/youtube-script-chatbot:$COMMIT_SHA"
       - "--region"
       - "us-central1"
       - "--platform"
@@ -35,11 +37,16 @@ steps:
       - "100"
       - "--max-instances"
       - "10"
+      - "--port"
+      - "8080"
       - "--set-env-vars"
-      - "NODE_ENV=production,SEARCH_API_KEY=${_SEARCH_API_KEY}"
+      - "NODE_ENV=production"
 
 images:
+  - "gcr.io/$PROJECT_ID/youtube-script-chatbot:$COMMIT_SHA"
   - "gcr.io/$PROJECT_ID/youtube-script-chatbot:latest"
 
 options:
   logging: CLOUD_LOGGING_ONLY
+  machineType: 'E2_HIGHCPU_8'
+  timeout: '1200s'

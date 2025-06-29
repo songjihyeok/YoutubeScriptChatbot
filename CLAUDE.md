@@ -28,7 +28,7 @@ npm run db:push     # Push database schema changes
 ### Stack
 
 - **Frontend**: React 18 + TypeScript + Vite + Tailwind CSS + shadcn/ui components
-- **Backend**: Express.js + TypeScript + yt-dlp-exec
+- **Backend**: Express.js + TypeScript
 - **AI**: OpenAI GPT-4o for chat functionality
 - **Storage**: In-memory storage (MemStorage class)
 
@@ -62,8 +62,6 @@ NODE_ENV=development
 ```
 
 ## System Requirements
-
-- **yt-dlp** must be installed system-wide for YouTube transcript extraction
 
 ## Key API Endpoints
 

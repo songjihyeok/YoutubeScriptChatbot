@@ -21,9 +21,7 @@ RUN npm run build
 # Production stage
 FROM node:20-alpine
 
-# Install yt-dlp system dependency
-RUN apk add --no-cache python3 py3-pip ffmpeg
-RUN pip3 install --no-cache-dir --break-system-packages yt-dlp
+RUN apk add --no-cache ffmpeg
 
 WORKDIR /app
 
@@ -35,6 +33,9 @@ RUN npm ci --production
 
 # Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
+
+# Copy client static files
+COPY client/public ./client/public
 
 # Set environment variables
 ENV NODE_ENV=production

@@ -1,18 +1,18 @@
-import { storage } from "./storage.js";
-import { youtubeService } from "./services/youtube.js";
-import { openaiService } from "./services/openai.js";
-import { insertTranscriptSchema } from "../shared/schema.js";
+import type { Express } from "express";
+import { storage } from "./storage";
+import { youtubeService } from "./services/youtube";
+import { openaiService } from "./services/openai";
+import { insertTranscriptSchema, youtubeUrlSchema, type YouTubeDataResponse } from "@shared/schema";
 import { z } from "zod";
 import dotenv from "dotenv";
-import path from "path";
 import { fileURLToPath } from "url";
+import { dirname, join } from "path";
 
-// ESM에서 __dirname 대체
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __dirname = dirname(__filename);
 
 // .env 파일 로드 (가장 먼저 실행되어야 함)
-dotenv.config({ path: path.join(__dirname, '../.env') });
+dotenv.config({ path: join(__dirname, '../.env') });
 console.log("Environment Variables Loaded:", {
   NODE_ENV: process.env.NODE_ENV,
   PORT: process.env.PORT,
@@ -23,7 +23,7 @@ const extractTranscriptSchema = z.object({
   youtubeUrl: z.string().url("Please enter a valid YouTube URL")
 });
 
-async function registerRoutes(app) {
+export async function registerRoutes(app: Express): Promise<void> {
 
   // Extract YouTube transcript using SearchAPI
   app.post("/api/extract-transcript", async (req, res) => {
@@ -52,11 +52,12 @@ async function registerRoutes(app) {
         throw new Error("SEARCH_API_KEY not configured");
       }
 
-      const videoInfo = await youtubeService.getVideoInfo(videoId);
+      const videoInfo = await youtubeService.getDetailedVideoInfo(videoId);
+
+      console.log("videoInfo", videoInfo);
+
       console.log("Video language info:", {
         language: videoInfo.language,
-        defaultLanguage: videoInfo.defaultLanguage,
-        availableLanguages: videoInfo.availableLanguages
       });
 
       const language = videoInfo?.language ?? "en";
@@ -84,12 +85,10 @@ async function registerRoutes(app) {
       const transcriptData = {
         youtubeUrl,
         videoId,
-        title:
-          searchApiData.filename?.replace(/_[a-zA-Z0-9]{8}\.[^.]+$/, "") ||
-          "Unknown Title",
-        channelName: "YouTube Channel",
-        duration: "N/A",
-        thumbnailUrl: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
+        title: videoInfo.title,
+        channelName: videoInfo.channel,
+        duration: videoInfo.duration_string,
+        thumbnailUrl: videoInfo.thumbnail,
         segments: searchApiData.transcripts.map((transcript: any) => ({
           text: transcript?.text?.trim(),
           start: transcript?.start,
@@ -182,7 +181,46 @@ async function registerRoutes(app) {
     }
   });
 
+  // YouTube 비디오 기본 정보 가져오기 API
+  app.get("/api/get-youtube-data", async (req, res) => {
+    try {
+      const { url } = youtubeUrlSchema.parse({ url: req.query.url });
+      
+      console.log(`YouTube 데이터 요청: ${url}`);
+      
+      // YouTube URL에서 비디오 ID 추출
+      const videoId = youtubeService.extractVideoId(url);
+      
+      if (!videoId) {
+        return res.status(400).json({
+          success: false,
+          message: "유효하지 않은 YouTube URL입니다.",
+          data: null
+        });
+      }
+      
+      // 상세한 비디오 정보 가져오기
+      const videoData = await youtubeService.getDetailedVideoInfo(videoId);
+      
+      console.log(`비디오 정보 가져오기 성공: ${videoData.title}`);
+      
+      const response: YouTubeDataResponse = {
+        success: true,
+        message: "YouTube 비디오 정보를 성공적으로 가져왔습니다.",
+        data: videoData
+      };
+      
+      res.json(response);
+      
+    } catch (error: any) {
+      console.error("YouTube 데이터 가져오기 오류:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "YouTube 데이터 가져오기 오류가 발생했습니다.",
+        data: null
+      });
+    }
+  });
+
   // Cloud Function에서는 서버 생성이 필요 없음
 }
-
-export { registerRoutes };
