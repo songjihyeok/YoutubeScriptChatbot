@@ -17,11 +17,11 @@ export class OpenAIService {
         messages: [
           {
             role: "system",
-            content: "You are an AI assistant that provides concise and informative summaries of video transcripts. Focus on the main topics, key points, and important insights."
+            content: "You are an AI assistant that provides concise and informative summaries of video transcripts. Focus on the main topics, key points, and important insights. Also your answer should be in korean language."
           },
           {
             role: "user",
-            content: `Please provide a comprehensive summary of this video transcript from "${videoTitle}":\n\n${transcriptText}`
+            content: `Please provide a comprehensive summary of this video transcript from "${videoTitle}":\n\n${transcriptText}. Please answer in korean language.`
           }
         ],
         max_tokens: 500,

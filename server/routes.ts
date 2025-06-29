@@ -53,8 +53,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         throw new Error("SEARCH_API_KEY not configured");
       }
 
+      const videoInfo = await youtubeService.getVideoInfo(videoId);
+      console.log("Video language info:", {
+        language: videoInfo.language,
+        defaultLanguage: videoInfo.defaultLanguage,
+        availableLanguages: videoInfo.availableLanguages
+      });
+
+      const language = videoInfo?.language ?? "en";
+
       const searchApiRes = await fetch(
-        `https://www.searchapi.io/api/v1/search?api_key=${apiKey}&engine=youtube_transcripts&video_id=${videoId}`,
+        `https://www.searchapi.io/api/v1/search?api_key=${apiKey}&engine=youtube_transcripts&video_id=${videoId}&lang=${language}`,
         {
           method: "GET",
           headers: { "Content-Type": "application/json" },
@@ -66,7 +75,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const searchApiData = await searchApiRes.json();
-      console.log("SearchAPI response:", searchApiData);
 
       // Check if transcripts are available
       if (!searchApiData.transcripts || searchApiData.transcripts.length === 0) {
@@ -84,9 +92,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         duration: "N/A",
         thumbnailUrl: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
         segments: searchApiData.transcripts.map((transcript: any) => ({
-          text: transcript.text.trim(),
-          start: transcript.start,
-          duration: transcript.duration,
+          text: transcript?.text?.trim(),
+          start: transcript?.start,
+          duration: transcript?.duration,
         })),
       };
 

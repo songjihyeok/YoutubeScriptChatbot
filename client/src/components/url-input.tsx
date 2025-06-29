@@ -19,7 +19,6 @@ export default function UrlInput({
   setUrl,
 }: UrlInputProps) {
   const { toast } = useToast();
-  // https://asia-northeast3-youtubecrawling-463910.cloudfunctions.net/youtubecrawling
   const extractMutation = useMutation({
     mutationFn: async (youtubeUrl: string) => {
       try {
