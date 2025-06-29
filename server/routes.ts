@@ -180,4 +180,4 @@ async function registerRoutes(app) {
   // Cloud Function에서는 서버 생성이 필요 없음
 }
 
-module.exports = { registerRoutes };
+export { registerRoutes };

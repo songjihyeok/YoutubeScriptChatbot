@@ -1,11 +1,12 @@
 {
   "name": "rest-express",
   "version": "1.0.0",
+  "type": "module",
   "main": "index.js",
   "license": "MIT",
   "scripts": {
     "dev": "NODE_ENV=development tsx server/index.ts",
-    "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=cjs --outdir=dist",
+    "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
     "build:server": "echo 'Using JavaScript file directly - no build needed'",
     "start": "NODE_ENV=production node dist/index.js",
     "start:function": "functions-framework --target=youtubeScriptApi --source=. --signature-type=http",
