@@ -1,4 +1,4 @@
-import { transcripts, users, type Transcript, type InsertTranscript, type User, type InsertUser, type TranscriptSegment } from "@shared/schema";
+import { transcripts, users, type Transcript, type InsertTranscript, type User, type InsertUser, type TranscriptSegment } from "../shared/schema.js";
 
 export interface IStorage {
   // Transcript methods

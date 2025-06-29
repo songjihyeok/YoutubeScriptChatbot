@@ -1,10 +1,15 @@
-const { storage } = require("./storage");
-const { youtubeService } = require("./services/youtube");
-const { openaiService } = require("./services/openai");
-const { insertTranscriptSchema } = require("@shared/schema");
-const { z } = require("zod");
-const dotenv = require("dotenv");
-const path = require("path");
+import { storage } from "./storage.js";
+import { youtubeService } from "./services/youtube.js";
+import { openaiService } from "./services/openai.js";
+import { insertTranscriptSchema } from "../shared/schema.js";
+import { z } from "zod";
+import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
+
+// ESM에서 __dirname 대체
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // .env 파일 로드 (가장 먼저 실행되어야 함)
 dotenv.config({ path: path.join(__dirname, '../.env') });

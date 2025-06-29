@@ -1,6 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
-import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
+import { registerRoutes } from "./routes.js";
+import { setupVite, serveStatic, log } from "./vite.js";
 import dotenv from "dotenv";
 
 // 환경 변수 로드
@@ -40,8 +40,10 @@ app.use((req, res, next) => {
   next();
 });
 
+import { createServer } from "http";
+
 (async () => {
-  const server = await registerRoutes(app);
+  await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
@@ -50,6 +52,9 @@ app.use((req, res, next) => {
     res.status(status).json({ message });
     throw err;
   });
+
+  // Create HTTP server
+  const server = createServer(app);
 
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
@@ -62,11 +67,7 @@ app.use((req, res, next) => {
 
   // Use PORT from environment variable for Cloud Run, fallback to 5001
   const port = process.env.PORT ? parseInt(process.env.PORT) : 5001;
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
+  server.listen(port, "0.0.0.0", () => {
     log(`serving on port ${port}`);
   });
 })();
