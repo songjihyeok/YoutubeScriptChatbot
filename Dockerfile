@@ -5,13 +5,9 @@ WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
-COPY yarn.lock* ./
-COPY pnpm-lock.yaml* ./
 
 # Install dependencies
-RUN if [ -f yarn.lock ]; then yarn install --frozen-lockfile; \
-    elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm install --frozen-lockfile; \
-    else npm ci; fi
+RUN npm ci
 
 # Copy source code
 COPY . .
@@ -30,13 +26,9 @@ WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
-COPY yarn.lock* ./
-COPY pnpm-lock.yaml* ./
 
 # Install production dependencies only
-RUN if [ -f yarn.lock ]; then yarn install --production --frozen-lockfile; \
-    elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm install --prod --frozen-lockfile; \
-    else npm ci --production; fi
+RUN npm ci --production
 
 # Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
