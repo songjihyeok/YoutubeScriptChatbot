@@ -1,0 +1,53 @@
+# Client files - Cloud Function에는 불필요
+client/
+
+# Node modules
+node_modules/
+
+# Git files
+.git/
+.gitignore
+
+# Environment files
+.env
+.env.local
+.env.production
+.env.development
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# IDE files
+.vscode/
+.idea/
+.DS_Store
+
+# Coverage and test files
+coverage/
+.nyc_output/
+test/
+tests/
+
+# Build artifacts
+dist/
+build/
+
+# Documentation
+*.md
+README.md
+CLAUDE.md
+replit.md
+
+# Config files that are not needed in production
+.eslintrc*
+.prettierrc*
+tailwind.config.ts
+postcss.config.js
+components.json
+vite.config.ts
+
+# Cloud Build files (for Container deployment, not needed for Function)
+Dockerfile
+cloudbuild.yaml 

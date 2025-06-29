@@ -1,41 +1,45 @@
 steps:
   # Build the container image
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/$PROJECT_ID/youtube-script-chatbot:$COMMIT_SHA', '.']
-  
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      - "build"
+      - "-t"
+      - "gcr.io/$PROJECT_ID/youtube-script-chatbot:latest"
+      - "."
+
   # Push the container image to Container Registry
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$PROJECT_ID/youtube-script-chatbot:$COMMIT_SHA']
-  
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["push", "gcr.io/$PROJECT_ID/youtube-script-chatbot:latest"]
+
   # Deploy container image to Cloud Run
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
     entrypoint: gcloud
     args:
-      - 'run'
-      - 'deploy'
-      - 'youtube-script-chatbot'
-      - '--image'
-      - 'gcr.io/$PROJECT_ID/youtube-script-chatbot:$COMMIT_SHA'
-      - '--region'
-      - 'us-central1'
-      - '--platform'
-      - 'managed'
-      - '--allow-unauthenticated'
-      - '--memory'
-      - '1Gi'
-      - '--cpu'
-      - '1'
-      - '--timeout'
-      - '300'
-      - '--concurrency'
-      - '100'
-      - '--max-instances'
-      - '10'
-      - '--set-env-vars'
-      - 'NODE_ENV=production'
+      - "run"
+      - "deploy"
+      - "youtube-script-chatbot"
+      - "--image"
+      - "gcr.io/$PROJECT_ID/youtube-script-chatbot:latest"
+      - "--region"
+      - "us-central1"
+      - "--platform"
+      - "managed"
+      - "--allow-unauthenticated"
+      - "--memory"
+      - "1Gi"
+      - "--cpu"
+      - "1"
+      - "--timeout"
+      - "300"
+      - "--concurrency"
+      - "100"
+      - "--max-instances"
+      - "10"
+      - "--set-env-vars"
+      - "NODE_ENV=production,SEARCH_API_KEY=${_SEARCH_API_KEY}"
 
 images:
-  - 'gcr.io/$PROJECT_ID/youtube-script-chatbot:$COMMIT_SHA'
+  - "gcr.io/$PROJECT_ID/youtube-script-chatbot:latest"
 
 options:
   logging: CLOUD_LOGGING_ONLY

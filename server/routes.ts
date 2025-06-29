@@ -1,19 +1,13 @@
-import type { Express } from "express";
-import { createServer, type Server } from "http";
-import { storage } from "./storage";
-import { youtubeService } from "./services/youtube";
-import { openaiService } from "./services/openai";
-import { insertTranscriptSchema } from "@shared/schema";
-import { z } from "zod";
-import dotenv from "dotenv";
-import { fileURLToPath } from "url";
-import { dirname, join } from "path";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const { storage } = require("./storage");
+const { youtubeService } = require("./services/youtube");
+const { openaiService } = require("./services/openai");
+const { insertTranscriptSchema } = require("@shared/schema");
+const { z } = require("zod");
+const dotenv = require("dotenv");
+const path = require("path");
 
 // .env 파일 로드 (가장 먼저 실행되어야 함)
-dotenv.config({ path: join(__dirname, '../.env') });
+dotenv.config({ path: path.join(__dirname, '../.env') });
 console.log("Environment Variables Loaded:", {
   NODE_ENV: process.env.NODE_ENV,
   PORT: process.env.PORT,
@@ -24,7 +18,7 @@ const extractTranscriptSchema = z.object({
   youtubeUrl: z.string().url("Please enter a valid YouTube URL")
 });
 
-export async function registerRoutes(app: Express): Promise<Server> {
+async function registerRoutes(app) {
 
   // Extract YouTube transcript using SearchAPI
   app.post("/api/extract-transcript", async (req, res) => {
@@ -183,6 +177,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  const httpServer = createServer(app);
-  return httpServer;
+  // Cloud Function에서는 서버 생성이 필요 없음
 }
+
+module.exports = { registerRoutes };
